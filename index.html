@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Moirai — Sovereign AI Image Generator v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0e0e0f;--accent:#ff8859;--muted:#d7d7d7;--radius:16px;
+  --font:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--muted);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.app{max-width:960px;width:100%;display:flex;flex-direction:column;gap:2rem;text-align:center}
+h1{font-size:clamp(2.5rem,5vw,3.5rem);color:white}
+p.desc{opacity:.8}
+button{cursor:pointer;border:none;border-radius:var(--radius);font-weight:600;transition:all .2s}
+button:hover{transform:scale(1.03)}
+section{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:2rem;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+label{display:block;margin-bottom:.3rem;font-weight:600}
+select,input{width:100%;padding:1rem;border-radius:var(--radius);border:1px solid rgba(255,255,255,.08);background:transparent;color:white;font-size:1.1rem}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+#generate{background:linear-gradient(180deg,var(--accent),#ff6e3a);color:white;padding:1rem 2rem;margin-top:1rem}
+#canvasWrap{position:relative;margin-top:1rem}
+canvas{border-radius:var(--radius);width:100%;max-height:480px;box-shadow:0 0 24px rgba(0,0,0,.6)}
+.caption{margin-top:1rem;font-size:1.2rem;line-height:1.4;color:rgba(255,255,255,.9)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#222;padding:.8rem 1.2rem;border-radius:12px;color:white;opacity:0;transition:opacity .4s}
+.toast.show{opacity:1}
+.admin-btn{position:fixed;top:1rem;right:1rem;background:#e53935;color:#fff;padding:.6rem 1rem;font-size:.9rem}
+.sidebar{position:fixed;top:0;right:-360px;width:340px;height:100vh;background:#181818;padding:1.5rem;transition:right .3s;overflow:auto}
+.sidebar.open{right:0}
+.sidebar input{margin-bottom:.6rem}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>Moirai</h1>
+  <p class="desc">The Sovereign AI Image Generator — offline, poetic, and free.</p>
+
+  <section id="controls">
+    <label for="theme">Theme / Concept</label>
+    <select id="theme">
+      <option value="">Random</option>
+      <option>Freedom</option><option>Dreams</option><option>Melancholy</option>
+      <option>Hope</option><option>Rebirth</option><option>Light</option>
+    </select>
+
+    <label for="emotion">Emotion / Mood</label>
+    <select id="emotion">
+      <option value="">Random</option>
+      <option>Peaceful</option><option>Passionate</option><option>Mysterious</option>
+      <option>Joyful</option><option>Reflective</option><option>Bold</option>
+    </select>
+
+    <label for="symbol">Symbol / Object</label>
+    <select id="symbol">
+      <option value="">Random</option>
+      <option>Moon</option><option>Tree</option><option>Flame</option>
+      <option>Dove</option><option>Labyrinth</option><option>Phoenix</option>
+    </select>
+
+    <label for="style">Artistic Style</label>
+    <select id="style">
+      <option value="">Random</option>
+      <option>Impressionist</option><option>Minimalist</option>
+      <option>Abstract</option><option>Fantasy</option><option>Surreal</option>
+    </select>
+
+    <button id="generate">Generate Image</button>
+  </section>
+
+  <div id="canvasWrap"></div>
+</div>
+
+<button class="admin-btn" id="adminBtn">Admin</button>
+<div class="sidebar" id="sidebar">
+  <h3>Admin Panel</h3>
+  <input type="password" id="passInput" placeholder="Enter Passcode"/>
+  <button id="unlockBtn">Unlock</button>
+  <div id="adminArea" style="display:none">
+    <label>Contrast Mode Toggle</label>
+    <button id="contrastBtn">Toggle High Contrast</button>
+    <label>Reset Generator</label>
+    <button id="resetBtn">Reset All</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ====== Data Sets ======
+const palettes=[
+  {name:"Sunset Serenity",colors:["#FF6E3A","#FF8A59","#FFD1A4","#FFE1C6","#2C1B17"]},
+  {name:"Forest Whisper",colors:["#2E4E1F","#6B8E23","#A9C985","#D4EAC7","#E5F3DB"]},
+  {name:"Dreamy Pastels",colors:["#FADADD","#FFD9E8","#C9E4FF","#E2FFE2","#FFF0B3"]},
+  {name:"Bold Contrast",colors:["#FF3D00","#00FFD1","#FFEB00","#2C003E","#FF6E3A"]}
+];
+const templates=[
+  "The {symbol} {verb} through the {adjective} {theme}.",
+  "A {adjective} {symbol} {verb} within {emotion}.",
+  "In {emotion}, the {symbol} {verb} beneath {theme}."
+];
+const adjectives=["radiant","serene","mystic","luminous","gentle","fiery"];
+const verbs=["rises","whispers","glows","flows","lingers","awakens"];
+const passcode="3112";
+
+// ====== Utility ======
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const toast=(m)=>{const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);};
+
+// ====== Core Generation ======
+document.getElementById("generate").onclick=()=>{
+  const theme=document.getElementById("theme").value||rand(["Freedom","Dreams","Hope","Twilight"]);
+  const emotion=document.getElementById("emotion").value||rand(["Peaceful","Passionate","Mysterious","Joyful"]);
+  const symbol=document.getElementById("symbol").value||rand(["Moon","Tree","Flame","Dove"]);
+  const style=document.getElementById("style").value||rand(["Abstract","Fantasy","Surreal"]);
+  const palette=rand(palettes);
+  renderCanvas(theme,emotion,symbol,style,palette);
+};
+
+// ====== Canvas Renderer ======
+function renderCanvas(theme,emotion,symbol,style,palette){
+  const wrap=document.getElementById("canvasWrap");wrap.innerHTML="";
+  const canvas=document.createElement("canvas");canvas.width=800;canvas.height=500;
+  const ctx=canvas.getContext("2d");
+  // background gradient
+  const g=ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0,palette.colors[0]);g.addColorStop(1,palette.colors[3]);
+  ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
+  // procedural circles
+  for(let i=0;i<40;i++){
+    ctx.beginPath();
+    const r=Math.random()*80+10;
+    ctx.arc(Math.random()*800,Math.random()*500,r,0,Math.PI*2);
+    ctx.fillStyle=palette.colors[Math.floor(Math.random()*palette.colors.length)]+"22";
+    ctx.fill();
+  }
+  // subtle texture noise
+  const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  for(let i=0;i<imgData.data.length;i+=4){imgData.data[i+3]-=Math.random()*10;}
+  ctx.putImageData(imgData,0,0);
+  wrap.appendChild(canvas);
+  // caption
+  const t=rand(templates)
+    .replace("{theme}",theme.toLowerCase())
+    .replace("{emotion}",emotion.toLowerCase())
+    .replace("{symbol}",symbol.toLowerCase())
+    .replace("{adjective}",rand(adjectives))
+    .replace("{verb}",rand(verbs));
+  const cap=document.createElement("div");
+  cap.className="caption";
+  cap.innerHTML=`${t}<br><em>Style:</em> ${style}, <em>Palette:</em> ${palette.name}`;
+  wrap.appendChild(cap);
+}
+
+// ====== Admin Panel ======
+const sidebar=document.getElementById("sidebar");
+document.getElementById("adminBtn").onclick=()=>sidebar.classList.add("open");
+document.getElementById("unlockBtn").onclick=()=>{
+  const p=document.getElementById("passInput").value.trim();
+  if(p===passcode){document.getElementById("adminArea").style.display="block";toast("Unlocked");}
+  else toast("Incorrect passcode");
+};
+document.getElementById("contrastBtn").onclick=()=>{
+  document.body.classList.toggle("high");
+  if(document.body.classList.contains("high")){
+    document.body.style.background="#fff";document.body.style.color="#111";
+  }else{document.body.style.background="#0e0e0f";document.body.style.color="#d7d7d7";}
+};
+document.getElementById("resetBtn").onclick=()=>{
+  localStorage.clear();toast("Reset complete");sidebar.classList.remove("open");
+};
+</script>
+</body>
+</html>
