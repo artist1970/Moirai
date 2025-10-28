@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Watercolor Grain",
+    "file": "./assets/images/textures/watercolor-grain.png",
+    "type": "paper",
+    "description": "Soft watercolor paper grain texture for natural diffusion and light bleed.",
+    "origin": "Sovereign handmade or CC0 source (Pixabay/PublicDomainTextures).",
+    "use": "Background base for painting and poetic renders."
+  },
+  {
+    "name": "Canvas Fiber",
+    "file": "./assets/images/textures/canvas-fiber.png",
+    "type": "fabric",
+    "description": "Subtle linen weave texture for artistic grounding.",
+    "origin": "Self-scanned fabric or public domain textile photo.",
+    "use": "Overlay for realism or painterly tone."
+  },
+  {
+    "name": "Light Haze",
+    "file": "./assets/images/textures/light-haze.png",
+    "type": "atmospheric",
+    "description": "Faint mist or haze gradient used to add ethereal depth.",
+    "origin": "Procedurally generated in GIMP or Krita.",
+    "use": "Layer blending mode: soft light or overlay."
+  },
+  {
+    "name": "Ink Bleed",
+    "file": "./assets/images/textures/ink-bleed.png",
+    "type": "edge",
+    "description": "Irregular ink edge spread for organic borders.",
+    "origin": "Created from scanned brush tests or CC0 texture.",
+    "use": "Overlay or multiply blending mode for painterly edges."
+  },
+  {
+    "name": "Dust Overlay",
+    "file": "./assets/images/textures/dust-overlay.png",
+    "type": "noise",
+    "description": "Fine particle texture for aged, cinematic look.",
+    "origin": "Procedural noise render (GIMP → HSV Noise + Blur).",
+    "use": "Optional film grain effect or atmospheric realism."
+  },
+  {
+    "name": "Nebula Swirl",
+    "file": "./assets/images/textures/nebula-swirl.png",
+    "type": "cosmic",
+    "description": "Color swirl pattern inspired by nebulae and dreams.",
+    "origin": "Self-created in Krita or generated locally via prompt.",
+    "use": "Mood background or cosmic energy field."
+  },
+  {
+    "name": "Gold Thread",
+    "file": "./assets/images/textures/gold-thread.png",
+    "type": "detail",
+    "description": "Fine linear shimmer representing sacred geometry and fate.",
+    "origin": "Macro photo or vector render created offline.",
+    "use": "Highlight accent or poetic frame motif."
+  }
+]
